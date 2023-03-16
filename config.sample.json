@@ -1,0 +1,7 @@
+{
+  "port": 9995,
+  "domain": "nexus.your-domain.tld",
+  "lower-port-limit": 40000,
+  "upper-port-limit": 40002,
+  "secure": true
+}
