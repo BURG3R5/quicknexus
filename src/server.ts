@@ -1,10 +1,12 @@
 import {
   Context,
   Debug,
+  hri,
   Oak,
   Router,
   RouterContext,
   send,
+  Status,
 } from "./dependencies.ts";
 import { deletePortalPath, newPortalPath, showPortalPath } from "./paths.ts";
 import { landing, notFound, stats } from "./views.ts";
@@ -56,8 +58,23 @@ export default class Server {
   }
 
   private newPortal(context: RouterContext<typeof newPortalPath>) {
-    context.response.body =
-      `a new portal: ${context.params.requestedSubDomain}`;
+    const requestedSubDomain: string = context.params.requestedSubDomain;
+    let subdomain;
+    if (/^(?:[a-z0-9][a-z0-9\-]{2,61}[a-z0-9])$/.test(requestedSubDomain)) {
+      subdomain = requestedSubDomain;
+    } else if (requestedSubDomain === "-") {
+      subdomain = hri.random();
+    } else {
+      context.response.status = Status.BadRequest;
+      context.response.body = {
+        message: "Invalid subdomain. " +
+          "Subdomains must be lowercase " +
+          "and between 4 and 63 alphanumeric characters",
+      };
+      return;
+    }
+
+    context.response.body = `a new portal: ${subdomain}`;
   }
 
   private showPortal(context: RouterContext<typeof showPortalPath>) {
