@@ -13,7 +13,7 @@ however, easily set up and run your own server. In order to run your own
 quicknexus you must ensure that your server can meet the following requirements:
 
 - You can set up DNS entries for your `domain.tld` and `*.domain.tld` (or
-  `tunnel.domain.tld` and `*.tunnel.domain.tld`).
+  `nexus.domain.tld` and `*.nexus.domain.tld`).
 - The server can accept incoming TCP connections for any non-root TCP port (i.e.
   ports over 1000).
 
@@ -38,17 +38,17 @@ The quicknexus is now running and waiting for client requests on port 1234.
 **NOTE** By default, quicknexus will use subdomains for clients, if you plan to
 host your quicknexus itself on a subdomain you will need to use the `--domain`
 option and specify the domain name behind which you are hosting quicknexus (e.g.
-tunnel.domain.tld)
+nexus.domain.tld)
 
 #### use your server
 
 You can now use your domain with the `--host` flag for the `quickportal`.
 
 ```shell
-quip 8000 helloworld --host http://tunnel.domain.tld:1333
+quip 8000 helloworld --host http://nexus.domain.tld:1333
 ```
 
-You will be assigned a URL similar to `helloworld.tunnel.domain.tld:1333`.
+You will be assigned a URL similar to `helloworld.nexus.domain.tld:1333`.
 
 If your server is acting as a reverse proxy (e.g. nginx) and is able to listen
 on port 80, then you do not need the `:1333` part of the hostname for the
@@ -56,12 +56,12 @@ on port 80, then you do not need the `:1333` part of the hostname for the
 
 ## REST API
 
-### POST /api/tunnels
+### GET /portal/:subdomain/new
 
-Create a new tunnel. A quickportal posts to this endpoint to request a new
-tunnel with a specific name, or a randomly assigned name.
+Create a new portal. A quickportal posts to this endpoint to request a new
+portal with a specific name, or a randomly assigned name.
 
-### GET /api/status
+### GET /stats
 
 General server information.
 

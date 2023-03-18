@@ -102,7 +102,7 @@ export function stats(stats: Stats): string {
   }
 
   if (idPortTable === "") {
-    idPortTable = "<code>no tunnels</code>";
+    idPortTable = "<code>no portals</code>";
   }
 
   const mem = Deno.memoryUsage();

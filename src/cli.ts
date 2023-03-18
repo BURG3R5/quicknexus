@@ -43,12 +43,12 @@ let command, argv: Arguments;
     .options("max-sockets", {
       default: 10,
       describe:
-        "maximum number of tcp sockets each client is allowed to establish at one time (the tunnels)",
+        "maximum number of tcp sockets each client is allowed to establish at one time (the portals)",
       type: "number",
     })
     .options("domain", {
       describe:
-        "Specify the base domain name. This is optional if hosting quicknexus from a regular example.com domain. This is required if hosting a quicknexus from a subdomain (i.e. tunnel.domain.tld where clients will be client-app.tunnel.domain.tld)",
+        "Specify the base domain name. This is optional if hosting quicknexus from a regular example.com domain. This is required if hosting a quicknexus from a subdomain (i.e. nexus.domain.tld where clients will be client-app.nexus.domain.tld)",
     })
     .options("address", {
       default: "0.0.0.0",
