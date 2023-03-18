@@ -22,11 +22,19 @@ export default class Server {
 
     this.router
       .get("/", (ctx) => (ctx.response.body = landing()))
-      .get("/stats", (ctx) => (ctx.response.body = stats()))
+      .get(
+        "/stats",
+        (ctx) => (ctx.response.body = stats({
+          connectedSockets: 10,
+          idsUsed: ["burgers"],
+          portsEngaged: [42000],
+        })),
+      )
       .get("/portal/:id/new", this.newTunnel)
       .get("/portal/:id/stats", this.tunnelStats)
       .get("/portal/:id/delete", this.deleteTunnel)
-      .get("/favicon.ico", this.favicon);
+      .get("/favicon.ico", this.serveStatic)
+      .get("/quicknexus.png", this.serveStatic);
 
     this.oak.use(this.router.routes());
     this.oak.use(this.router.allowedMethods());
@@ -42,7 +50,7 @@ export default class Server {
   private async tunnelStats(_context: Context) {}
   private async deleteTunnel(_context: Context) {}
 
-  private async favicon(context: Context) {
+  private async serveStatic(context: Context) {
     await send(context, context.request.url.pathname, {
       root: `${Deno.cwd()}/static`,
       immutable: true,
