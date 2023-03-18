@@ -1,7 +1,7 @@
-name: fmt
+name: CI
 on: push
 jobs:
-  build:
+  fmt:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
