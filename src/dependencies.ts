@@ -5,7 +5,9 @@ import {
   Application as Oak,
   Context,
   Router,
+  RouterContext,
   send,
 } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 
 export { Context, Debug, Oak, Router, send, yargs };
+export type { RouterContext };

@@ -122,3 +122,16 @@ export function stats(stats: Stats): string {
     "</body></html>"
   );
 }
+
+export function notFound(): string {
+  return (
+    head("quicknexus") +
+    '<div class="layer-one">\n' +
+    '  <img src="/quicknexus.png" alt="logo">\n' +
+    `  <code class="main-title">404</code>\n` +
+    '  <code class="table-row-body">&nbsp;</code>\n' +
+    '  <code class="table-row-body">thanks for using quicknexus,</code>\n' +
+    '  <code class="table-row-body">but this page doesn\'t exist</code>\n' +
+    "</div></div></body></html>"
+  );
+}

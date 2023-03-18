@@ -1,5 +1,12 @@
-import { Context, Debug, Oak, Router, send } from "./dependencies.ts";
-import { landing, stats } from "./views.ts";
+import {
+  Context,
+  Debug,
+  Oak,
+  Router,
+  RouterContext,
+  send,
+} from "./dependencies.ts";
+import { landing, notFound, stats } from "./views.ts";
 
 const debug = Debug("quicknexus");
 
@@ -34,7 +41,8 @@ export default class Server {
       .get("/portal/:id/stats", this.tunnelStats)
       .get("/portal/:id/delete", this.deleteTunnel)
       .get("/favicon.ico", this.serveStatic)
-      .get("/quicknexus.png", this.serveStatic);
+      .get("/quicknexus.png", this.serveStatic)
+      .get("/(.*)", (ctx) => (ctx.response.body = notFound()));
 
     this.oak.use(this.router.routes());
     this.oak.use(this.router.allowedMethods());
