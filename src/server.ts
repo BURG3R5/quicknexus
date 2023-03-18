@@ -15,7 +15,7 @@ export default class Server {
     readonly lowerPortLimit: number,
     readonly upperPortLimit: number,
     readonly domain: string | undefined,
-    readonly maxSockets: number
+    readonly maxSockets: number,
   ) {
     this.oak = new Oak();
     this.router = new Router();

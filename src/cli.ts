@@ -10,7 +10,7 @@ let command, argv: Arguments;
   command = yargs(Deno.args)
     .usage(
       "Usage: nexus [--port PORT] [--secure] [--allow-delete] " +
-        "[--config PATH_TO_CONFIG_FILE] [--domain DOMAIN] [...]"
+        "[--config PATH_TO_CONFIG_FILE] [--domain DOMAIN] [...]",
     )
     .config()
     .help()
@@ -60,8 +60,7 @@ let command, argv: Arguments;
 
 // validate input
 {
-  const error =
-    validateInputAsPort(argv.port) ||
+  const error = validateInputAsPort(argv.port) ||
     validateInputAsPort(argv.lowerPortLimit) ||
     validateInputAsPort(argv.upperPortLimit);
   if (error) {
@@ -85,7 +84,7 @@ let command, argv: Arguments;
     argv.lowerPortLimit,
     argv.upperPortLimit,
     argv.domain,
-    argv.maxSockets
+    argv.maxSockets,
   );
 
   await server.listen();
