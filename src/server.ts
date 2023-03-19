@@ -40,9 +40,9 @@ export default class Server {
     );
 
     this.router
-      .get(newPortalPath, this.newPortal)
-      .get(showPortalPath, this.showPortal)
-      .get(closePortalPath, this.closePortal)
+      .get(newPortalPath, this.newPortal.bind(this))
+      .get(showPortalPath, this.showPortal.bind(this))
+      .get(closePortalPath, this.closePortal.bind(this))
       .get("/", (ctx) => (ctx.response.body = landing()))
       .get(
         "/status",
@@ -125,6 +125,7 @@ export default class Server {
     if (this.allowDelete) {
       try {
         await this.manager.closePortal(context.params.subdomain);
+        context.response.body = { message: "success" };
       } catch (error) {
         if (error.name === "PortalNotFound") {
           context.response.status = Status.NotFound;
