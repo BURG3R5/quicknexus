@@ -2,6 +2,7 @@ import {
   Context,
   Debug,
   hri,
+  logger,
   Oak,
   Router,
   RouterContext,
@@ -51,6 +52,7 @@ export default class Server {
       .get("/quicknexus.png", this.serveStatic)
       .get("/(.*)", (ctx) => (ctx.response.body = notFound()));
 
+    this.oak.use(logger.logger);
     this.oak.use(this.router.routes());
     this.oak.use(this.router.allowedMethods());
   }
