@@ -1,6 +1,6 @@
 import yargs from "npm:yargs@17.7.1";
 import Debug from "npm:debug@4.3.4";
-import hri from "npm:human-readable-ids@1.0.4";
+import { hri } from "npm:human-readable-ids@1.0.4";
 
 import { Status } from "https://deno.land/std@0.178.0/http/http_status.ts";
 
