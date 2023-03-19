@@ -61,7 +61,7 @@ on port 80, then you do not need the `:1333` part of the hostname for the
 Create a new portal. A quickportal posts to this endpoint to request a new
 portal with a specific name, or a randomly assigned name.
 
-### GET /stats
+### GET /status
 
 General server information.
 

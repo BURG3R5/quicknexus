@@ -6,4 +6,4 @@ export const newPortalPath = "/portal/:requestedSubDomain/new" as const;
 
 export const showPortalPath = "/portal/:subdomain/stats" as const;
 
-export const deletePortalPath = "/portal/:subdomain/delete" as const;
+export const closePortalPath = "/portal/:subdomain/close" as const;

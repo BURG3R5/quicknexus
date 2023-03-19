@@ -1,4 +1,4 @@
-import Stats from "./types/stats.ts";
+import NexusData from "./types/nexus_data.ts";
 
 function head(tabTitle: string) {
   return (
@@ -94,11 +94,11 @@ export function landing(): string {
   );
 }
 
-export function stats(stats: Stats): string {
+export function status(nexusData: NexusData): string {
   let idPortTable = "";
 
-  for (let i = 0; i < stats.idsUsed.length; i++) {
-    idPortTable += row(stats.idsUsed[i], stats.portsEngaged[i]);
+  for (let i = 0; i < nexusData.idsUsed.length; i++) {
+    idPortTable += row(nexusData.idsUsed[i], nexusData.portsEngaged[i]);
   }
 
   if (idPortTable === "") {
@@ -108,10 +108,10 @@ export function stats(stats: Stats): string {
   const mem = Deno.memoryUsage();
 
   return (
-    head("quicknexus stats") +
+    head("quicknexus status") +
     '<div class="layer-one">\n' +
     '  <img src="/quicknexus.png" alt="logo">\n' +
-    `  <code class="main-title">quicknexus stats</code>\n` +
+    `  <code class="main-title">quicknexus status</code>\n` +
     '  <code class="table-row-body">&nbsp;</code>\n' +
     idPortTable +
     '  <code class="table-row-body">&nbsp;</code>' +

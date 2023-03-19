@@ -8,41 +8,45 @@ import {
   send,
   Status,
 } from "./dependencies.ts";
-import { deletePortalPath, newPortalPath, showPortalPath } from "./paths.ts";
-import { landing, notFound, stats } from "./views.ts";
+import Manager from "./manager.ts";
+import { closePortalPath, newPortalPath, showPortalPath } from "./paths.ts";
+import { landing, notFound, status } from "./views.ts";
 
 const debug = Debug("quicknexus");
 
 export default class Server {
   oak: Oak;
   router: Router;
+  manager: Manager;
 
   constructor(
     readonly port: number,
     readonly address: string,
-    readonly secure: boolean,
+    secure: boolean,
     readonly allowDelete: boolean,
-    readonly lowerPortLimit: number,
-    readonly upperPortLimit: number,
+    lowerPortLimit: number,
+    upperPortLimit: number,
     readonly domain: string | undefined,
-    readonly maxSockets: number,
+    maxSockets: number,
   ) {
     this.oak = new Oak();
     this.router = new Router();
+    this.manager = new Manager(
+      secure,
+      lowerPortLimit,
+      upperPortLimit,
+      maxSockets,
+    );
 
     this.router
-      .get("/", (ctx) => (ctx.response.body = landing()))
-      .get(
-        "/stats",
-        (ctx) => (ctx.response.body = stats({
-          connectedSockets: 10,
-          idsUsed: ["burgers"],
-          portsEngaged: [42000],
-        })),
-      )
       .get(newPortalPath, this.newPortal)
       .get(showPortalPath, this.showPortal)
-      .get(deletePortalPath, this.deletePortal)
+      .get(closePortalPath, this.closePortal)
+      .get("/", (ctx) => (ctx.response.body = landing()))
+      .get(
+        "/status",
+        (ctx) => (ctx.response.body = status(this.manager.nexusData)),
+      )
       .get("/favicon.ico", this.serveStatic)
       .get("/quicknexus.png", this.serveStatic)
       .get("/(.*)", (ctx) => (ctx.response.body = notFound()));
@@ -57,32 +61,86 @@ export default class Server {
     await this.oak.listen({ port: this.port, hostname: this.address });
   }
 
-  private newPortal(context: RouterContext<typeof newPortalPath>) {
+  private async newPortal(context: RouterContext<typeof newPortalPath>) {
     const requestedSubDomain: string = context.params.requestedSubDomain;
     let subdomain;
     if (/^(?:[a-z0-9][a-z0-9\-]{2,61}[a-z0-9])$/.test(requestedSubDomain)) {
-      subdomain = requestedSubDomain;
+      if (!this.manager.nexusData.idsUsed.includes(requestedSubDomain)) {
+        subdomain = requestedSubDomain;
+      } else {
+        subdomain = hri.random();
+      }
     } else if (requestedSubDomain === "-") {
       subdomain = hri.random();
     } else {
       context.response.status = Status.BadRequest;
       context.response.body = {
-        message: "Invalid subdomain. " +
+        message: "Invalid subdomain: " +
           "Subdomains must be lowercase " +
           "and between 4 and 63 alphanumeric characters",
       };
       return;
     }
 
-    context.response.body = `a new portal: ${subdomain}`;
+    try {
+      const data = await this.manager.createPortal(
+        subdomain,
+        context.request.url.host,
+      );
+      context.response.body = data;
+    } catch (error) {
+      if (error.name === "ServerAtCapacity") {
+        context.response.status = Status.ServiceUnavailable;
+        context.response.body = { message: error.message };
+        return;
+      } else {
+        context.response.status = Status.InternalServerError;
+        context.response.body = { message: "Internal Server Error" };
+        return;
+      }
+    }
   }
 
   private showPortal(context: RouterContext<typeof showPortalPath>) {
-    context.response.body = `stats for ${context.params.subdomain}: 420`;
+    try {
+      context.response.body = {
+        connectedSockets: this.manager.getPortalStats(context.params.subdomain),
+      };
+    } catch (error) {
+      if (error.name === "PortalNotFound") {
+        context.response.status = Status.NotFound;
+        context.response.body = { message: error.message };
+        return;
+      } else {
+        context.response.status = Status.InternalServerError;
+        context.response.body = { message: "Internal Server Error" };
+        return;
+      }
+    }
   }
 
-  private deletePortal(context: RouterContext<typeof deletePortalPath>) {
-    context.response.body = `${context.params.subdomain} has been deleted`;
+  private async closePortal(context: RouterContext<typeof closePortalPath>) {
+    if (this.allowDelete) {
+      try {
+        await this.manager.closePortal(context.params.subdomain);
+      } catch (error) {
+        if (error.name === "PortalNotFound") {
+          context.response.status = Status.NotFound;
+          context.response.body = { message: error.message };
+          return;
+        } else {
+          context.response.status = Status.InternalServerError;
+          context.response.body = { message: "Internal Server Error" };
+          return;
+        }
+      }
+    } else {
+      context.response.status = Status.Unauthorized;
+      context.response.body = {
+        message: "Delete Failed: This quicknexus instance " +
+          "does not support deleting endpoints",
+      };
+    }
   }
 
   private async serveStatic(context: Context) {
