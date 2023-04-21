@@ -1,3 +1,5 @@
+import { AxiosResponse, RawAxiosRequestHeaders } from "./dependencies.ts";
+
 export function isInteger(value: unknown): boolean {
   return (
     typeof value === "number" && isFinite(value) && Math.floor(value) === value
@@ -39,4 +41,48 @@ export function randomInRangeWithExclude(
     .every((e) => e <= num && (num++, true));
 
   return num;
+}
+
+export function castDenoHeadersToAxios(
+  headers: Headers,
+): RawAxiosRequestHeaders {
+  const commonHeadersList = [
+    "Accept",
+    "Content-Length",
+    "User-Agent",
+    "Content-Encoding",
+    "Authorization",
+    "Content-Type",
+  ];
+  const object: RawAxiosRequestHeaders = {};
+
+  commonHeadersList.forEach((commonHeader) => {
+    object[commonHeader] = headers.get(commonHeader);
+  });
+
+  headers.forEach((value, key, _) => {
+    object[key] = value;
+  });
+
+  return object;
+}
+
+function castAxiosHeadersToDeno(
+  headers: Record<string, unknown>,
+): string[][] {
+  const list: string[][] = [];
+  for (const key in headers) {
+    list.push([key, headers[key] as string]);
+  }
+  return list;
+}
+
+export function castResponse(response: AxiosResponse): Response {
+  console.log(response.data);
+
+  return new Response(response.data, {
+    headers: castAxiosHeadersToDeno(response.headers),
+    status: response.status,
+    statusText: response.statusText,
+  });
 }

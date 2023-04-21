@@ -1,12 +1,14 @@
 import {
   Context,
   Debug,
+  getSubdomain,
   hri,
   logger,
   Oak,
   Router,
   RouterContext,
   send,
+  serve,
   Status,
 } from "./dependencies.ts";
 import Manager from "./manager.ts";
@@ -60,10 +62,73 @@ export default class Server {
   async listen() {
     debug(`server listening on port: ${this.port}`);
 
-    await this.oak.listen({ port: this.port, hostname: this.address });
+    const config = {
+      port: this.port,
+      hostname: this.address,
+    };
+
+    await serve(this.handler.bind(this), config);
   }
 
-  private async newPortal(context: RouterContext<typeof newPortalPath>) {
+  private async handler(
+    request: Request,
+  ): Promise<Response> {
+    const isUpgradeRequest = request.headers.get("Upgrade") === "websocket";
+    const { socket, response } = isUpgradeRequest
+      ? Deno.upgradeWebSocket(request)
+      : { socket: null, response: null };
+
+    const hostname = request.headers.get("Host");
+    if (!hostname) {
+      if (isUpgradeRequest) {
+        console.log(response);
+        return response!;
+      }
+
+      return new Response(
+        `{message: "Host header is required"}`,
+        { status: 400 },
+      );
+    }
+
+    const subdomain = getSubdomain(
+      hostname,
+      this.domain ? { validHosts: [this.domain] } : {},
+    );
+    if (!subdomain) {
+      if (isUpgradeRequest) {
+        socket?.close(400, "Subdomain not found");
+        console.log(response);
+        return response!;
+      }
+
+      const oakResponse = await this.oak.handle(request);
+      if (typeof oakResponse === "undefined") {
+        return new Response(
+          `{message: "Internal Server Error"}`,
+          { status: Status.InternalServerError },
+        );
+      }
+      return oakResponse;
+    }
+
+    const portal = this.manager.portals.get(subdomain);
+    if (!portal) {
+      return new Response(
+        `{message: "The requested portal couldn't be found"}`,
+        { status: 404 },
+      );
+    }
+
+    if (!isUpgradeRequest) {
+      return portal.handleRequest(request);
+    } else {
+      portal.handleUpgrade(request, socket!);
+      return response!;
+    }
+  }
+
+  private newPortal(context: RouterContext<typeof newPortalPath>) {
     const requestedSubDomain: string = context.params.requestedSubDomain;
     let subdomain;
     if (/^(?:[a-z0-9][a-z0-9\-]{2,61}[a-z0-9])$/.test(requestedSubDomain)) {
@@ -85,7 +150,7 @@ export default class Server {
     }
 
     try {
-      const data = await this.manager.createPortal(
+      const data = this.manager.createPortal(
         subdomain,
         context.request.url.host,
       );
@@ -121,10 +186,10 @@ export default class Server {
     }
   }
 
-  private async closePortal(context: RouterContext<typeof closePortalPath>) {
+  private closePortal(context: RouterContext<typeof closePortalPath>) {
     if (this.allowDelete) {
       try {
-        await this.manager.closePortal(context.params.subdomain);
+        this.manager.closePortal(context.params.subdomain);
         context.response.body = { message: "success" };
       } catch (error) {
         if (error.name === "PortalNotFound") {

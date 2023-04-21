@@ -21,7 +21,7 @@ export default class Manager {
     this.portals = new Map();
   }
 
-  async createPortal(subdomain: string, host: string): Promise<PortalData> {
+  createPortal(subdomain: string, host: string): PortalData {
     if (
       this.upperPortLimit - this.lowerPortLimit ===
         this.nexusData.portsEngaged.length
@@ -35,13 +35,23 @@ export default class Manager {
       this.nexusData.portsEngaged,
     );
 
-    const portal = new Portal(port, subdomain);
+    const portal = new Portal(
+      port,
+      subdomain,
+      this.closePortal.bind(this),
+      this.maxSockets,
+    );
 
     this.portals.set(subdomain, portal);
     this.nexusData.idsUsed.push(subdomain);
     this.nexusData.portsEngaged.push(port);
 
-    // TODO: Open portal
+    try {
+      portal.agent.listen();
+    } catch (error) {
+      this.closePortal(subdomain);
+      throw error;
+    }
 
     return {
       subdomain,
@@ -61,20 +71,21 @@ export default class Manager {
     return portal.connectedSockets;
   }
 
-  async closePortal(subdomain: string) {
+  closePortal(subdomain: string) {
     const portal = this.portals.get(subdomain);
 
-    if (typeof portal === "undefined") {
-      throw new PortalNotFound();
-    }
-
-    // TODO: Close portal
-
-    this.nexusData.portsEngaged = removeItemOnce(
-      this.nexusData.portsEngaged,
-      portal.port,
-    );
     this.nexusData.idsUsed = removeItemOnce(this.nexusData.idsUsed, subdomain);
     this.portals.delete(subdomain);
+
+    if (typeof portal === "undefined") {
+      // throw new PortalNotFound();
+    } else {
+      portal.close();
+
+      this.nexusData.portsEngaged = removeItemOnce(
+        this.nexusData.portsEngaged,
+        portal.port,
+      );
+    }
   }
 }
