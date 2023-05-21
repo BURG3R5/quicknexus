@@ -21,7 +21,7 @@ export function convertFromIncomingMessage(
   const method = incomingMessage.method;
   const url = new URL(
     (secure ? "http" : "https") + "://" + incomingHttpHeaders.host +
-      incomingHttpHeaders.url,
+      incomingMessage.url,
   );
 
   return new Request(url, {

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>quicknexus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .main-div {
+            position: relative;
+        }
+
+        .main-div img,
+        .main-div span {
+            margin-bottom: 0.7em;
+        }
+
+        .main-div img {
+            height: 100px;
+            width: 100px;
+            border-radius: 50%;
+        }
+
+        .layer-one {
+            position: absolute;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #2A2B2C;
+            color: #F9EACA;
+            font-family: Söhne, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Helvetica Neue, Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+        }
+
+        .layer-two {
+            position: absolute;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: end;
+            justify-content: end;
+            text-align: right;
+            color: white;
+            font-family: Söhne, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, Helvetica Neue, Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+        }
+
+        .table-row {
+            width: 25ch;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .main-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .table-row-title {
+            font-weight: bold;
+        }
+
+        .table-row-body {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-div">
+        <div class="layer-one">
+            <img src="/quicknexus.png" alt="logo">
+            <code class="main-title">quicknexus status</code>
+            <code class="table-row-body">&nbsp;</code>
+            {{idPortTable}}
+            <code class="table-row-body">&nbsp;</code>
+        </div>
+        <div class="layer-two">{{layerTwoContent}}</div>
+    </div>
+</body>
+
+</html>

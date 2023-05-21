@@ -14,7 +14,7 @@ import {
   writeToServerResponse,
 } from "./translators.ts";
 
-const debug = Debug("quicknexus");
+const debug = Debug("quicknexus.server");
 
 export default class Server {
   server: http.Server;
@@ -43,9 +43,7 @@ export default class Server {
         .get(Paths.landing, Views.landing)
         .get(
           Paths.status,
-          (
-            ctx,
-          ) => (ctx.response.body = Views.status(/*this.manager.nexusData*/)),
+          (ctx) => Views.status(ctx /*, this.manager.nexusData,*/),
         )
         .get(Paths.favicon, Views.static)
         .get(Paths.logo, Views.static)
