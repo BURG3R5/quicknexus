@@ -1,7 +1,7 @@
 import { yargs } from "./dependencies.ts";
 import Arguments from "./types/arguments.ts";
+import Server from "./server.ts";
 import { isInteger, validateInputAsPort } from "./utils.ts";
-import getServer from "./server.ts";
 
 let command, argv: Arguments;
 
@@ -76,7 +76,7 @@ let command, argv: Arguments;
 
 // serve
 {
-  const server = getServer(
+  const server = new Server(
     argv.port,
     argv.address,
     argv.secure,
@@ -87,7 +87,7 @@ let command, argv: Arguments;
     argv.maxSockets,
   );
 
-  await server.listen();
+  server.listen();
 }
 
 Deno.addSignalListener("SIGINT", Deno.exit);

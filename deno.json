@@ -1,5 +1,5 @@
 {
   "tasks": {
-    "dev": "deno run -A ./src/cli.ts"
+    "dev": "DEBUG='*' deno run -A ./src/cli.ts --config config.json"
   }
 }
