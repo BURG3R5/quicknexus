@@ -13,3 +13,5 @@ export class Paths {
   static showPortal = "/portal/:subdomain/stats" as const;
   static closePortal = "/portal/:subdomain/close" as const;
 }
+
+export const subdomainRegex = /^(?:[a-z0-9][a-z0-9\-]{2,61}[a-z0-9])$/;

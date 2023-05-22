@@ -1,4 +1,5 @@
 import { Context, Debug, send } from "./dependencies.ts";
+import NexusData from "./types/nexusData.ts";
 
 const debug = Debug("quicknexus.views");
 
@@ -10,7 +11,7 @@ export default class Views {
     });
   }
 
-  static status(context: Context /*, nexusData: NexusData*/) {
+  static status(context: Context, nexusData: NexusData) {
     // Read the template file
     const templateContent = Deno.readTextFileSync(
       `${Deno.cwd()}/static/status.html`,
@@ -24,12 +25,10 @@ export default class Views {
       layerTwoContent =
         `<code>${rss}<br />${heapUsed}<br />${heapTotal}<br />${external}</code>`;
 
-      for (let i = 0; i < 3 /*nexusData.idsUsed.length*/; i++) {
+      for (let i = 0; i < nexusData.idsUsed.length; i++) {
         idPortTable += '<div class="table-row">' +
-          `<code class="table-row-title">${"burgers"}</code>` +
-          `<code class="table-row-body">${40376}</code>` +
-          // `<code class="table-row-title">${nexusData.idsUsed[i]}</code>` +
-          // `<code class="table-row-body">${nexusData.portsEngaged[i]}</code>` +
+          `<code class="table-row-title">${nexusData.idsUsed[i]}</code>` +
+          `<code class="table-row-body">${nexusData.portsEngaged[i]}</code>` +
           "</div>";
       }
 
