@@ -100,7 +100,7 @@ export default class Server {
       subdomain = getSubdomain(hostname);
     }
 
-    if (subdomain === null) { // let Oak handle it
+    if (!subdomain) { // let Oak handle it
       const oakRequest: Request = convertFromIncomingMessage(
         incomingMessage,
         this.secure,
@@ -125,22 +125,7 @@ export default class Server {
         return;
       }
 
-      const portalRequest: Request = convertFromIncomingMessage(
-        incomingMessage,
-        this.secure,
-      );
-
-      const portalResponse = await portal.handleRequest(portalRequest);
-
-      const wasHandledByPortal = writeToServerResponse(
-        portalResponse,
-        serverResponse,
-      );
-      if (!wasHandledByPortal) {
-        serverResponse.statusCode = 404;
-        serverResponse.write("How did you get here?");
-        serverResponse.end();
-      }
+      portal.handleRequest(incomingMessage, serverResponse);
     }
   }
 
@@ -170,7 +155,7 @@ export default class Server {
     portal.handleUpgrade(incomingMessage, socket);
   }
 
-  private newPortal(context: RouterContext<typeof Paths.newPortal>) {
+  private async newPortal(context: RouterContext<typeof Paths.newPortal>) {
     // get subdomain
     let subdomain;
     {
@@ -195,7 +180,7 @@ export default class Server {
     }
 
     try {
-      const data = this.manager.createPortal(
+      const data = await this.manager.createPortal(
         subdomain,
         context.request.url.host,
       );
@@ -207,7 +192,11 @@ export default class Server {
         return;
       } else {
         context.response.status = 500;
-        context.response.body = { message: "Internal Server Error", ok: false };
+        context.response.body = {
+          message: "Internal Server Error",
+          details: error.message,
+          ok: false,
+        };
         return;
       }
     }

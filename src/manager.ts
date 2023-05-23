@@ -21,38 +21,51 @@ export default class Manager {
     this.portals = new Map();
   }
 
-  createPortal(subdomain: string, host: string): PortalData {
-    if (
-      this.upperPortLimit - this.lowerPortLimit ===
-        this.nexusData.portsEngaged.length
-    ) {
-      throw new ServerAtCapacity();
+  async createPortal(subdomain: string, host: string): Promise<PortalData> {
+    // get a port
+    let port: number;
+    {
+      if (
+        this.upperPortLimit - this.lowerPortLimit ===
+          this.nexusData.portsEngaged.length
+      ) {
+        throw new ServerAtCapacity();
+      }
+
+      port = randomInRangeWithExclude(
+        this.lowerPortLimit,
+        this.upperPortLimit,
+        this.nexusData.portsEngaged,
+      );
     }
 
-    const port = randomInRangeWithExclude(
-      this.lowerPortLimit,
-      this.upperPortLimit,
-      this.nexusData.portsEngaged,
-    );
+    // make a portal
+    let portal: Portal;
+    {
+      portal = new Portal(
+        port,
+        subdomain,
+        this.maxSockets,
+      );
 
-    const portal = new Portal(
-      port,
-      subdomain,
-      this.closePortal.bind(this),
-      this.maxSockets,
-    );
+      this.portals.set(subdomain, portal);
+      this.nexusData.idsUsed.push(subdomain);
+      this.nexusData.portsEngaged.push(port);
 
-    this.portals.set(subdomain, portal);
-    this.nexusData.idsUsed.push(subdomain);
-    this.nexusData.portsEngaged.push(port);
+      portal.once("close", () => {
+        this.closePortal(subdomain);
+      });
+    }
 
+    // start listening
     try {
-      // TODO: portal.agent.listen();
+      await portal.agent.listen();
     } catch (error) {
       this.closePortal(subdomain);
       throw error;
     }
 
+    // return PortalData
     return {
       subdomain,
       port,
@@ -72,18 +85,19 @@ export default class Manager {
   closePortal(subdomain: string) {
     const portal: Portal | undefined = this.portals.get(subdomain);
 
-    this.nexusData.idsUsed = removeItemOnce(this.nexusData.idsUsed, subdomain);
+    if (!portal) throw new PortalNotFound();
+
+    portal.close();
+
+    // Delete from NexusData
     this.portals.delete(subdomain);
-
-    if (!portal) {
-      throw new PortalNotFound();
-    } else {
-      portal.close();
-
-      this.nexusData.portsEngaged = removeItemOnce(
-        this.nexusData.portsEngaged,
-        portal.port,
-      );
-    }
+    this.nexusData.idsUsed = removeItemOnce(
+      this.nexusData.idsUsed,
+      subdomain,
+    );
+    this.nexusData.portsEngaged = removeItemOnce(
+      this.nexusData.portsEngaged,
+      portal.port,
+    );
   }
 }
