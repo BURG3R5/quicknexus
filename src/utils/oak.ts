@@ -1,4 +1,4 @@
-import { http } from "./dependencies.ts";
+import { http } from "../dependencies.ts";
 
 export function convertFromIncomingMessage(
   incomingMessage: http.IncomingMessage,

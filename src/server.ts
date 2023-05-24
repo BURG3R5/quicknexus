@@ -14,7 +14,7 @@ import Manager from "./manager.ts";
 import {
   convertFromIncomingMessage,
   writeToServerResponse,
-} from "./translators.ts";
+} from "./utils/oak.ts";
 import Views from "./views.ts";
 
 const debug = Debug("quicknexus.server");

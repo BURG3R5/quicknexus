@@ -2,7 +2,8 @@ import NexusData from "./types/nexusData.ts";
 import PortalData from "./types/portalData.ts";
 import Portal from "./portal.ts";
 import { PortalNotFound, ServerAtCapacity } from "./exceptions.ts";
-import { randomInRangeWithExclude, removeItemOnce } from "./utils.ts";
+import removeItemOnce from "./utils/array.ts";
+import randomInRangeWithExclude from "./utils/random.ts";
 
 export default class Manager {
   nexusData: NexusData;

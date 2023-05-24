@@ -1,7 +1,7 @@
 import { yargs } from "./dependencies.ts";
 import Arguments from "./types/arguments.ts";
 import Server from "./server.ts";
-import { isInteger, validateInputAsPort } from "./utils.ts";
+import { isInteger, validateInputAsPort } from "./utils/validation.ts";
 
 let command, argv: Arguments;
 
