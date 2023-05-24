@@ -20,8 +20,8 @@ export default class Portal extends EventEmitter {
     super();
 
     this.connectedSockets = 0;
-    this.debug = Debug(`quicknexus.portal[${this.subdomain}][${this.port}]`);
-    this.graceTimeout = setTimeout(() => this.close(), 1000);
+    this.debug = Debug(`quicknexus.portal[${this.subdomain}]`);
+    this.graceTimeout = setTimeout(() => this.close(), 2000);
 
     // init Agent
     {
@@ -37,7 +37,7 @@ export default class Portal extends EventEmitter {
 
         // if there was a previous timeout set, we don't want to double trigger
         clearTimeout(this.graceTimeout);
-        this.graceTimeout = setTimeout(() => this.close(), 1000);
+        this.graceTimeout = setTimeout(() => this.close(), 2000);
       });
 
       this.agent.once("error", () => this.close());
@@ -92,51 +92,48 @@ export default class Portal extends EventEmitter {
     this.debug(`> [upgrade] ${request.url}`);
     nexusSocket.once("error", (err) => console.error(err));
 
-    this.agent.createConnection(
-      {},
-      (err: Error | undefined, portalSocket: stream.Duplex) => {
-        this.debug(`< [upgrade] ${request.url}`);
+    this.agent.createConnection((error, portalSocket) => {
+      this.debug(`< [upgrade] ${request.url}`);
 
-        // disconnect if error when getting a connection
-        if (err) {
-          nexusSocket.end();
-          return;
-        }
+      // disconnect if error when getting a connection
+      if (error || !portalSocket) {
+        nexusSocket.end();
+        return;
+      }
 
-        // ensure socket is still connected
-        if (!nexusSocket.readable || !nexusSocket.writable) {
-          portalSocket.destroy();
-          nexusSocket.end();
-          return;
-        }
+      // ensure socket is still connected
+      if (!nexusSocket.readable || !nexusSocket.writable) {
+        portalSocket.destroy();
+        nexusSocket.end();
+        return;
+      }
 
-        // construct rawData
-        const rawData: string[] = [];
-        {
-          // Websocket requests are special in that we simply
-          // re-create the header info then directly pipe the
-          // socket data. Avoids having to rebuild the request
-          // and handle upgrades via the http client
+      // construct rawData
+      const rawData: string[] = [];
+      {
+        // Websocket requests are special in that we simply
+        // re-create the header info then directly pipe the
+        // socket data. Avoids having to rebuild the request
+        // and handle upgrades via the http client
 
+        rawData.push(
+          `${request.method} ${request.url} HTTP/${request.httpVersion}`,
+        );
+
+        for (let i = 0; i < request.rawHeaders.length - 1; i += 2) {
           rawData.push(
-            `${request.method} ${request.url} HTTP/${request.httpVersion}`,
+            `${request.rawHeaders[i]}: ${request.rawHeaders[i + 1]}`,
           );
-
-          for (let i = 0; i < request.rawHeaders.length - 1; i += 2) {
-            rawData.push(
-              `${request.rawHeaders[i]}: ${request.rawHeaders[i + 1]}`,
-            );
-          }
-
-          rawData.push("");
-          rawData.push("");
         }
 
-        // using pump is deliberate - see the pump docs for why
-        pump(portalSocket, nexusSocket);
-        pump(nexusSocket, portalSocket);
-        portalSocket.write(rawData.join("\r\n"));
-      },
-    );
+        rawData.push("");
+        rawData.push("");
+      }
+
+      // using pump is deliberate - see the pump docs for why
+      pump(portalSocket, nexusSocket);
+      pump(nexusSocket, portalSocket);
+      portalSocket.write(rawData.join("\r\n"));
+    });
   }
 }

@@ -1,6 +1,7 @@
 import EventEmitter from "node:events";
 import http from "node:http";
 import stream from "node:stream";
+import net from "node:net";
 
 import Debug from "npm:debug@4.3.4";
 import { hri } from "npm:human-readable-ids@1.0.4";
@@ -25,6 +26,7 @@ export {
   hri,
   http,
   logger,
+  net,
   Oak,
   pump,
   Router,
